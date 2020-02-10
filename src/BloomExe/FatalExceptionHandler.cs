@@ -3,29 +3,15 @@ using System;
 using System.Threading;
 using SIL.Reporting;
 using System.Windows.Forms;
-using SIL.Windows.Forms.Reporting;
 
 namespace Bloom
 {
+	// Review: Does this even need to be descended from SIL.Reporting.ExceptionHandler now?
 	internal class FatalExceptionHandler : ExceptionHandler
 	{
-		private WinFormsExceptionHandler _fallbackHandler;
-
 		internal static Control ControlOnUIThread { get; private set; }
 
-		internal static bool InvokeRequired
-		{
-			get
-			{
-				return !ControlOnUIThread.IsDisposed && ControlOnUIThread.InvokeRequired;
-			}
-		}
-
-		/// <summary>
-		/// Initially true for setup, WorkspaceView sets this to false when BloomServer is up and listening
-		/// and the webcontroller api has registered the ProblemReportApi.
-		/// </summary>
-		internal static bool UseFallback;
+		internal static bool InvokeRequired => !ControlOnUIThread.IsDisposed && ControlOnUIThread.InvokeRequired;
 
 		/// ------------------------------------------------------------------------------------
 		/// <summary>
@@ -35,14 +21,6 @@ namespace Bloom
 		/// ------------------------------------------------------------------------------------
 		public FatalExceptionHandler()
 		{
-			// We need to create a WinFormsExceptionHandler so that if we ever need to use the fallback
-			// SIL.Reporting.ErrorReport system it has a valid ControlOnUIThread prop.
-			// Creating the object is enough to solve this problem. We keep a reference so it gets collected
-			// when we go away.
-			// Passing false keeps the WinForms handler from responding to exceptions, so we don't get two
-			// handlers vying for who gets to report an error.
-			_fallbackHandler = new WinFormsExceptionHandler(false);
-			UseFallback = false;
 
 			// We need to create a control on the UI thread so that we have a control that we
 			// can use to invoke the error reporting dialog on the correct thread.
@@ -57,6 +35,7 @@ namespace Bloom
 			// We also want to catch the UnhandledExceptions for all the cases that
 			// ThreadException don't catch, e.g. in the startup.
 			AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
+			var _problemReportObject = ProblemReportApi(null);
 		}
 
 		/// ------------------------------------------------------------------------------------
@@ -71,11 +50,6 @@ namespace Bloom
 		{
 			if (!GetShouldHandleException(sender, e.Exception))
 				return;
-			if (UseFallback)
-			{
-				_fallbackHandler.HandleTopLevelError(sender, e);
-				return;
-			}
 
 			if (DisplayError(e.Exception))
 			{
@@ -98,22 +72,11 @@ namespace Bloom
 			if (!GetShouldHandleException(sender, e.ExceptionObject as Exception))
 				return;
 
-			if (UseFallback)
-			{
-				_fallbackHandler.HandleUnhandledException(sender, e);
-				return;
-			}
-
-			if (e.ExceptionObject is Exception)
-				DisplayError(e.ExceptionObject as Exception);
-			else
-				DisplayError(new ApplicationException("Got unknown exception"));
+			var exception = e.ExceptionObject as Exception;
+			DisplayError(exception ?? new ApplicationException("Got unknown exception"));
 		}
 
-		protected override bool ShowUI
-		{
-			get { return false; }
-		}
+		protected override bool ShowUI => false;
 
 		protected override bool DisplayError(Exception exception)
 		{

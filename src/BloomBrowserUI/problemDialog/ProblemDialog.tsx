@@ -95,30 +95,25 @@ export const ProblemDialog: React.FunctionComponent<{
             setSubmitAttempts(submitAttempts + 1);
         } else {
             setMode(Mode.submitting);
-            BloomApi.postJson(
-                "problemReport/submit",
-                {
-                    kind: props.kind,
-                    email,
-                    userInput: `${whatDoing}\n\nHow much: ${stringifyHowMuch()}`,
-                    includeBook,
-                    includeScreenshot
-                },
-                result => {
-                    console.log(JSON.stringify(result.data));
-                    const failureResponseString = "failed:";
-                    const link = result.data.issueLink;
-                    if (link.startsWith(failureResponseString)) {
-                        setIssueLink(
-                            link.substring(failureResponseString.length)
-                        );
-                        setMode(Mode.submissionFailed);
-                    } else {
-                        setIssueLink(result.data.issueLink);
-                        setMode(Mode.submitted);
-                    }
-                }
-            );
+            fireCSharpEvent("submitProblemReport", {
+                kind: props.kind,
+                email,
+                userInput: `${whatDoing}\n\nHow much: ${stringifyHowMuch()}`,
+                includeBook,
+                includeScreenshot
+            });
+            // BloomApi.postJson("problemReport/submit", {}, result => {
+            //     console.log(JSON.stringify(result.data));
+            //     const failureResponseString = "failed:";
+            //     const link = result.data.issueLink;
+            //     if (link.startsWith(failureResponseString)) {
+            //         setIssueLink(link.substring(failureResponseString.length));
+            //         setMode(Mode.submissionFailed);
+            //     } else {
+            //         setIssueLink(result.data.issueLink);
+            //         setMode(Mode.submitted);
+            //     }
+            // });
         }
     };
 
@@ -176,7 +171,7 @@ export const ProblemDialog: React.FunctionComponent<{
                 l10nKey={l10nKey}
                 hasText={true}
                 onClick={() => {
-                    BloomApi.post("dialog/close");
+                    fireCSharpEvent("closeDialog", null);
                 }}
             >
                 {keyword}
@@ -212,7 +207,7 @@ export const ProblemDialog: React.FunctionComponent<{
                         hasText={true}
                         variant="outlined"
                         onClick={() => {
-                            BloomApi.post("dialog/close");
+                            fireCSharpEvent("closeDialog", null);
                         }}
                     >
                         Cancel
@@ -231,7 +226,7 @@ export const ProblemDialog: React.FunctionComponent<{
                 //fullWidth={true}
                 maxWidth={"md"}
                 fullScreen={true}
-                onClose={() => BloomApi.post("dialog/close")}
+                onClose={() => fireCSharpEvent("closeDialog", null)}
             >
                 {/* The whole disableTypography and Typography thing gets around Material-ui putting the
                     Close icon inside of the title's Typography element, where we don't have control over its CSS. */}
@@ -239,7 +234,7 @@ export const ProblemDialog: React.FunctionComponent<{
                     <Typography variant="h6">{localizedDlgTitle}</Typography>
                     <Close
                         className="close-in-title"
-                        onClick={() => BloomApi.post("dialog/close")}
+                        onClick={() => fireCSharpEvent("closeDialog", null)}
                     />
                 </DialogTitle>
                 <DialogContent className="content">
@@ -400,6 +395,33 @@ function useCtrlEnterToSubmit(callback) {
             window.removeEventListener("keydown", handler);
         };
     }, []);
+}
+
+export function submissionResults(result: string) {
+    console.log(JSON.stringify(result));
+    alert("Got submissionResults!");
+    // const failureResponseString = "failed:";
+    // const link = result.data.issueLink;
+    // if (link.startsWith(failureResponseString)) {
+    //     setIssueLink(
+    //         link.substring(failureResponseString.length)
+    //     );
+    //     setMode(Mode.submissionFailed);
+    // } else {
+    //     setIssueLink(result.data.issueLink);
+    //     setMode(Mode.submitted);
+    // }
+}
+
+// Since we don't want the new Problem Reporting system to be dependent on have BloomServer running to capture
+// API calls, we are resurrecting the old C# event system that we've been trying to weed out!
+function fireCSharpEvent(eventName: string, eventData: any) {
+    const event = new MessageEvent(eventName, {
+        bubbles: true,
+        cancelable: true,
+        data: eventData
+    });
+    top.document.dispatchEvent(event);
 }
 
 // allow plain 'ol javascript in the html to connect up react

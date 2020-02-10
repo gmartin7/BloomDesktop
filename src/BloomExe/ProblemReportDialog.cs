@@ -17,15 +17,17 @@ using SIL.Reporting;
 
 namespace Bloom.web.controllers
 {
-	internal class ProblemReportApi : IDisposable
+	internal class ProblemReportApi: IDisposable
 	{
-		private readonly BookSelection _bookSelection;
+		private static BookSelection _bookSelection;
 		private static TempFile _screenshotTempFile;
-		private BloomZipFile _bookZipFile;
-		private readonly TempFile _bookZipFileTemp;
-		protected string YouTrackProjectKey = "BL";
+		private static BloomZipFile _bookZipFile;
+		private static TempFile _bookZipFileTemp;
+		private static string YouTrackProjectKey = "AUT";
+		//protected static string YouTrackProjectKey = "BL";
 		private static Exception _currentException;
 		private static string _detailedMessage; // usually from Bloom itself
+		private static Browser _browser;
 
 		/// <summary>
 		/// We want this name "different" enough that it's not likely to be supplied by a user in a book,
@@ -77,75 +79,80 @@ namespace Bloom.web.controllers
 					var userEmail = request.RequiredParam("email");
 					request.ReplyWithText(GetDiagnosticInfo(userWantsToIncludeBook, userInput, userEmail));
 				}, true);
+		}
 
-			// ProblemDialog.tsx uses this endpoint in its AttemptSubmit method;
-			// it expects a response that it will use to show the issue link to the user.
-			apiHandler.RegisterEndpointHandler("problemReport/submit",
-				(ApiRequest request) =>
+		// ProblemDialog.tsx uses this endpoint in its AttemptSubmit method;
+		// it expects a response that it will use to show the issue link to the user.
+		private static void SubmitProblemReport(string data)
+		{
+			var report = DynamicJson.Parse(data);
+			var subject = report.kind == "User" ? "User Problem" : report.kind == "Fatal" ? "Crash Report" : "Error Report";
+
+			var issueSubmission = new YouTrackIssueSubmitter(YouTrackProjectKey);
+			var userDesc = report.userInput as string;
+			var userEmail = report.email as string;
+			if (report.includeScreenshot && _screenshotTempFile != null && RobustFile.Exists(_screenshotTempFile.Path))
+			{
+				issueSubmission.AddAttachment(_screenshotTempFile?.Path);
+			}
+
+			if (report.includeBook)
+			{
+				try
 				{
-					var report = DynamicJson.Parse(request.RequiredPostJson());
-					var subject = report.kind == "User" ? "User Problem" : report.kind == "Fatal" ? "Crash Report" : "Error Report";
-
-					var issueSubmission = new YouTrackIssueSubmitter(YouTrackProjectKey);
-					var userDesc = report.userInput as string;
-					var userEmail = report.email as string;
-					if (report.includeScreenshot && _screenshotTempFile != null && RobustFile.Exists(_screenshotTempFile.Path))
+					_bookZipFile = new BloomZipFile(_bookZipFileTemp.Path);
+					_bookZipFile.AddDirectory(_bookSelection.CurrentSelection.StoragePageFolder);
+					if (WantReaderInfo(true))
 					{
-						issueSubmission.AddAttachment(_screenshotTempFile?.Path);
-					}
-					if(report.includeBook)
-					{
-						try
-						{
-							_bookZipFile = new BloomZipFile(_bookZipFileTemp.Path);
-							_bookZipFile.AddDirectory(_bookSelection.CurrentSelection.StoragePageFolder);
-							if (WantReaderInfo(true))
-							{
-								AddReaderInfo();
-							}
-							AddCollectionSettings();
-							_bookZipFile.Save();
-							issueSubmission.AddAttachment(_bookZipFileTemp.Path);
-						}
-						catch (Exception error)
-						{
-							var msg = "***Error as ProblemReportApi attempted to zip up the book: " + error.Message;
-							userDesc += Environment.NewLine + msg;
-							Logger.WriteEvent(msg);
-							DisposeOfZipRemnants(report.includeBook);
-						}
-					}
-					var diagnosticInfo = GetDiagnosticInfo(report.includeBook, userDesc, userEmail);
-					if (!string.IsNullOrWhiteSpace(userEmail))
-					{
-						// remember their email
-						SIL.Windows.Forms.Registration.Registration.Default.Email = userEmail;
+						AddReaderInfo();
 					}
 
-					const string failureResult = "failed";
-					string issueId;
-					try
-					{
-						issueId = issueSubmission.SubmitToYouTrack(subject, diagnosticInfo);
-					}
-					catch (Exception e)
-					{
-						Debug.Fail("Submitting problem report to YouTrack failed with '" + e.Message + "'.");
-						DisposeOfZipRemnants(report.includeBook);
-						issueId = failureResult;
-					}
-					object linkToNewIssue;
-					if (issueId == failureResult)
-					{
-						linkToNewIssue = new {issueLink = failureResult + ":" + _bookZipFileTemp.Path};
-						_bookZipFileTemp.Detach(); // so it doesn't go away before the user can email it to us.
-					}
-					else
-					{
-						linkToNewIssue = new { issueLink = "https://issues.bloomlibrary.org/youtrack/issue/" + issueId};
-					}
-					request.ReplyWithJson(linkToNewIssue);
-				}, true);
+					AddCollectionSettings();
+					_bookZipFile.Save();
+					issueSubmission.AddAttachment(_bookZipFileTemp.Path);
+				}
+				catch (Exception error)
+				{
+					var msg = "***Error as ProblemReportApi attempted to zip up the book: " + error.Message;
+					userDesc += Environment.NewLine + msg;
+					Logger.WriteEvent(msg);
+					DisposeOfZipRemnants(report.includeBook);
+				}
+			}
+
+			var diagnosticInfo = GetDiagnosticInfo(report.includeBook, userDesc, userEmail);
+			if (!string.IsNullOrWhiteSpace(userEmail))
+			{
+				// remember their email
+				SIL.Windows.Forms.Registration.Registration.Default.Email = userEmail;
+			}
+
+			const string failureResult = "failed";
+			string issueId;
+			try
+			{
+				issueId = issueSubmission.SubmitToYouTrack(subject, diagnosticInfo);
+			}
+			catch (Exception e)
+			{
+				Debug.Fail("Submitting problem report to YouTrack failed with '" + e.Message + "'.");
+				DisposeOfZipRemnants(report.includeBook);
+				issueId = failureResult;
+			}
+
+			object linkToNewIssue;
+			if (issueId == failureResult)
+			{
+				linkToNewIssue = new {issueLink = failureResult + ":" + _bookZipFileTemp.Path};
+				_bookZipFileTemp.Detach(); // so it doesn't go away before the user can email it to us.
+			}
+			else
+			{
+				linkToNewIssue = new {issueLink = "https://issues.bloomlibrary.org/youtrack/issue/" + issueId};
+			}
+
+			_browser.RunJavaScript("if (typeof(FrameExports) !=='undefined') {FrameExports.submissionResults('" +
+			                       linkToNewIssue + "');}");
 		}
 
 		private void DisposeOfZipRemnants(bool includeBook)
@@ -203,6 +210,7 @@ namespace Bloom.web.controllers
 		{
 			// Before we do anything that might be "risky", put the problem in the log.
 			LogProblem(exception, detailedMessage, levelOfProblem);
+			_browser = null;
 			if (_showingProblemReport)
 			{
 				// If a problem is reported when already reporting a problem, that's most likely going
@@ -236,6 +244,9 @@ namespace Bloom.web.controllers
 				var url = problemDialogRootPath.ToLocalhost() + query;
 				using (var dlg = new BrowserDialog(url))
 				{
+					_browser = dlg.Browser;
+					_browser.AddMessageEventListener("submitProblemReport", SubmitProblemReport);
+
 					dlg.ShowDialog();
 				}
 			}
@@ -257,6 +268,7 @@ namespace Bloom.web.controllers
 				_showingProblemReport = false;
 			}
 		}
+
 
 		private static void TryGetScreenshot(Control controlForScreenshotting)
 		{
