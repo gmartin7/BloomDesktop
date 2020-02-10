@@ -42,7 +42,7 @@ namespace Bloom
 			// Passing false keeps the WinForms handler from responding to exceptions, so we don't get two
 			// handlers vying for who gets to report an error.
 			_fallbackHandler = new WinFormsExceptionHandler(false);
-			UseFallback = true;
+			UseFallback = false;
 
 			// We need to create a control on the UI thread so that we have a control that we
 			// can use to invoke the error reporting dialog on the correct thread.

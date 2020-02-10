@@ -189,7 +189,7 @@ namespace Bloom.web.controllers
 			ShowProblemDialog(null, exception, detailedMessage, "nonfatal");
 		}
 
-		static bool _showingProblemReport;
+		private static bool _showingProblemReport;
 
 		/// <summary>
 		/// Shows a problem dialog.

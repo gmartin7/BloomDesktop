@@ -23,7 +23,7 @@ namespace Bloom.MiscUI
 		public BrowserDialog(string url)
 		{
 			InitializeComponent();
-			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+			this.FormBorderStyle = FormBorderStyle.None;
 
 			// The Size setting is needed on Linux to keep the browser from coming up as a small
 			// rectangle in the upper left corner...
