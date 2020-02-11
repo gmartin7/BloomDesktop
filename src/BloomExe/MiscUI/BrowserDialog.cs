@@ -29,9 +29,9 @@ namespace Bloom.MiscUI
 			// rectangle in the upper left corner...
 			Browser = new Browser { Dock = DockStyle.Fill, Location = new Point(3, 3), Size = new Size(this.Width - 6, this.Height - 6) };
 			Browser.BackColor = Color.White;
-			Browser.AddMessageEventListener("closeDialog", CloseDialog);
 
 			var dummy = Browser.Handle; // gets the WebBrowser created
+			Browser.AddMessageEventListener("closeDialog", CloseDialog);
 			Browser.WebBrowser.DocumentCompleted += (sender, args) =>
 			{
 				// If the control gets added to the tab before it has navigated somewhere,

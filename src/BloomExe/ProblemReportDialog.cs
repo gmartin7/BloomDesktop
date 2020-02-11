@@ -35,7 +35,7 @@ namespace Bloom
 		/// </summary>
 		internal const string ScreenshotName = "ProblemReportScreenshot.png";
 
-		private string CollectionFolder => Path.GetDirectoryName(_bookSelection.CurrentSelection.StoragePageFolder);
+		private static string CollectionFolder => Path.GetDirectoryName(_bookSelection.CurrentSelection.StoragePageFolder);
 
 		public ProblemReportDialog(BookSelection bookSelection)
 		{
@@ -155,7 +155,7 @@ namespace Bloom
 			                       linkToNewIssue + "');}");
 		}
 
-		private void DisposeOfZipRemnants(bool includeBook)
+		private static void DisposeOfZipRemnants(bool includeBook)
 		{
 			// if an error happens in the zipper, the zip file stays locked, so we just leak it
 			if (includeBook)
@@ -166,7 +166,7 @@ namespace Bloom
 			_bookZipFile = null;
 		}
 
-		private void AddReaderInfo()
+		private static void AddReaderInfo()
 		{
 			var filePaths = GetReaderFilePaths(CollectionFolder);
 			foreach (var filePath in filePaths)
@@ -175,7 +175,7 @@ namespace Bloom
 			}
 		}
 
-		private void AddCollectionSettings()
+		private static void AddCollectionSettings()
 		{
 			var filePaths = GetCollectionFilePaths(CollectionFolder);
 			foreach (var filePath in filePaths)
@@ -210,7 +210,6 @@ namespace Bloom
 		{
 			// Before we do anything that might be "risky", put the problem in the log.
 			LogProblem(exception, detailedMessage, levelOfProblem);
-			_browser = null;
 			if (_showingProblemReport)
 			{
 				// If a problem is reported when already reporting a problem, that's most likely going
@@ -220,10 +219,12 @@ namespace Bloom
 				const string msg = "The last call logged was a RECURSIVE CALL to ShowProblemDialog";
 				Console.Write(msg);
 				Logger.WriteEvent(msg);
+				_browser = null;
 				return; // break recursion...
 			}
 
 			_showingProblemReport = true;
+			_browser = null;
 			_currentException = exception;
 			_detailedMessage = detailedMessage;
 			if (controlForScreenshotting == null)
@@ -241,7 +242,8 @@ namespace Bloom
 			{
 				var query = "?" + levelOfProblem;
 				var problemDialogRootPath = BloomFileLocator.GetBrowserFile(false, "problemDialog", "loader.html");
-				var url = problemDialogRootPath.ToLocalhost() + query;
+				problemDialogRootPath = problemDialogRootPath.ToLocalhost();
+				var url = problemDialogRootPath.Replace("http://localhost:0/bloom", "file://") + query;
 				using (var dlg = new BrowserDialog(url))
 				{
 					_browser = dlg.Browser;
@@ -315,7 +317,7 @@ namespace Bloom
 			_screenshotTempFile = null;
 		}
 
-		private string GetDiagnosticInfo(bool includeBook, string userDescription, string userEmail)
+		private static string GetDiagnosticInfo(bool includeBook, string userDescription, string userEmail)
 		{
 			var bldr = new StringBuilder();
 
@@ -430,7 +432,7 @@ namespace Bloom
 			}
 		}
 
-		private void GetAdditionalBloomEnvironmentInfo(StringBuilder bldr)
+		private static void GetAdditionalBloomEnvironmentInfo(StringBuilder bldr)
 		{
 			var book = _bookSelection.CurrentSelection;
 			var projectName = book?.CollectionSettings.CollectionName;
@@ -474,7 +476,7 @@ namespace Bloom
 			}
 		}
 
-		private void GetAdditionalFileInfo(StringBuilder bldr, bool includeBook)
+		private static void GetAdditionalFileInfo(StringBuilder bldr, bool includeBook)
 		{
 			var book = _bookSelection.CurrentSelection;
 			if (string.IsNullOrEmpty(book?.FolderPath))
@@ -514,7 +516,7 @@ namespace Bloom
 				bldr.AppendLine(filePath);
 		}
 
-		private bool WantReaderInfo(bool includeBook)
+		private static bool WantReaderInfo(bool includeBook)
 		{
 			var book = _bookSelection.CurrentSelection;
 

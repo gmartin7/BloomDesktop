@@ -293,11 +293,8 @@ namespace Bloom
 							}
 
 						}
-						Browser.SetUpXulRunner();
-						Browser.XulRunnerShutdown += OnXulRunnerShutdown;
-#if DEBUG
-						StartDebugServer();
-#endif
+
+						throw new ApplicationException("My test exception"); // TEST ONLY!!!!
 
 						if (!BloomIntegrityDialog.CheckIntegrity())
 						{
@@ -1159,6 +1156,13 @@ Anyone looking specifically at our issue tracking system can read what you sent 
 			// normally would include a bogus "Apparently Built On" date:
 			ErrorReport.Properties["Version"] = ErrorReport.VersionNumberString + " " + ApplicationUpdateSupport.ChannelName;
 			SIL.Reporting.ExceptionHandler.Init(new FatalExceptionHandler());
+
+			// These lines are required for BrowserDialog to function (which is required for the Problem dialog)
+			Browser.SetUpXulRunner();
+			Browser.XulRunnerShutdown += OnXulRunnerShutdown;
+#if DEBUG
+			StartDebugServer();
+#endif
 
 			ExceptionHandler.AddDelegate((w,e) => DesktopAnalytics.Analytics.ReportException(e.Exception));
 			_errorHandlingHasBeenSetUp = true;

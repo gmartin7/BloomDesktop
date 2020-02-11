@@ -8,7 +8,6 @@ import {
     TextField,
     Typography
 } from "@material-ui/core";
-import { BloomApi } from "../utils/bloomApi";
 import { ThemeProvider } from "@material-ui/styles";
 import "./ProblemDialog.less";
 import BloomButton from "../react_components/bloomButton";
@@ -21,7 +20,7 @@ import { EmailField, isValidEmail } from "./EmailField";
 import { useDrawAttention } from "./UseDrawAttention";
 import ReactDOM = require("react-dom");
 import { PrivacyScreen } from "./PrivacyScreen";
-import { useL10n } from "../react_components/l10nHooks";
+//import { useL10n } from "../react_components/l10nHooks";
 import Close from "@material-ui/icons/Close";
 
 export enum ProblemKind {
