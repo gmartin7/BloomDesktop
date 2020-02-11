@@ -15,9 +15,7 @@ using Bloom.Collection;
 using Bloom.ImageProcessing;
 using Bloom.Publish;
 using Bloom.MiscUI;
-using Bloom.Publish.Android;
 using Bloom.web;
-using Bloom.web.controllers;
 using L10NSharp;
 using Newtonsoft.Json;
 using SIL.Code;
@@ -1799,7 +1797,7 @@ namespace Bloom.Book
 			}
 			catch (Exception err)
 			{
-				ProblemReportApi.ShowProblemDialog(null, err,
+				ProblemReportDialog.ShowProblemDialog(null, err,
 					"There was a problem applying the branding: " + _collectionSettings.BrandingProjectKey, "nonfatal");
 			}
 		}

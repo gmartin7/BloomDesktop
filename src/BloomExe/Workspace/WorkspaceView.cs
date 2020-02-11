@@ -94,11 +94,6 @@ namespace Bloom.Workspace
 			_localizationManager = localizationManager;
 			_model.UpdateDisplay += new System.EventHandler(OnUpdateDisplay);
 
-			// By this point, BloomServer is up and listening and our web controllers are registered,
-			// so our new ProblemReportApi will function. These next two lines activate it.
-			ErrorReport.OnShowDetails = ProblemReportApi.ShowProblemDialogForNonFatalException;
-			FatalExceptionHandler.UseFallback = false;
-
 			InitializeComponent();
 
 			_checkForNewVersionMenuItem.Visible = SIL.PlatformUtilities.Platform.IsWindows;
@@ -908,7 +903,7 @@ namespace Bloom.Workspace
 			// To test the old ErrorReport.NotifyUserOfProblem, uncomment this next line.
 			// ErrorReport.NotifyUserOfProblem(new ApplicationException("internal exception message"), "My main message");
 
-			ProblemReportApi.ShowProblemDialog(this, null);
+			ProblemReportDialog.ShowProblemDialog(this, null);
 		}
 
 		public void SetStateOfNonPublishTabs(bool enable)

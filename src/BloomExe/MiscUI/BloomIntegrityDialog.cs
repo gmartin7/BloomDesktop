@@ -88,9 +88,7 @@ namespace Bloom.MiscUI
 				dlg.htmlTextBox1.HtmlText = message;
 				dlg.ShowDialog();
 				Logger.WriteEvent("Bloom Integrity Check Failed: " + message);
-				// We would like to do this:
-				// ProblemReportApi.ShowProblemDialog(null, "fatal");
-				// But that can't work because BloomServer isn't running yet.
+				ProblemReportDialog.ShowProblemDialog(null, null, "", "fatal");
 			}
 
 			return false; //Force termination of the current process.

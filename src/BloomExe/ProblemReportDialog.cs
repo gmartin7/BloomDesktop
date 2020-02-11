@@ -15,9 +15,9 @@ using Bloom.ToPalaso;
 using SIL.IO;
 using SIL.Reporting;
 
-namespace Bloom.web.controllers
+namespace Bloom
 {
-	internal class ProblemReportApi: IDisposable
+	internal class ProblemReportDialog: IDisposable
 	{
 		private static BookSelection _bookSelection;
 		private static TempFile _screenshotTempFile;
@@ -37,7 +37,7 @@ namespace Bloom.web.controllers
 
 		private string CollectionFolder => Path.GetDirectoryName(_bookSelection.CurrentSelection.StoragePageFolder);
 
-		public ProblemReportApi(BookSelection bookSelection)
+		public ProblemReportDialog(BookSelection bookSelection)
 		{
 			_bookSelection = bookSelection;
 			_bookZipFileTemp = TempFile.WithFilenameInTempFolder("bookData.zip");
@@ -113,7 +113,7 @@ namespace Bloom.web.controllers
 				}
 				catch (Exception error)
 				{
-					var msg = "***Error as ProblemReportApi attempted to zip up the book: " + error.Message;
+					var msg = "***Error as ProblemReportDialog attempted to zip up the book: " + error.Message;
 					userDesc += Environment.NewLine + msg;
 					Logger.WriteEvent(msg);
 					DisposeOfZipRemnants(report.includeBook);
@@ -252,7 +252,7 @@ namespace Bloom.web.controllers
 			}
 			catch (Exception problemReportException)
 			{
-				Logger.WriteError("*** ProblemReportApi threw an exception trying to display", problemReportException);
+				Logger.WriteError("*** ProblemReportDialog threw an exception trying to display", problemReportException);
 				// At this point our problem reporter has failed for some reason, so we want the old WinForms handler
 				// to report both the original error for which we tried to open our dialog and this new one where
 				// the dialog itself failed.
@@ -299,7 +299,7 @@ namespace Bloom.web.controllers
 		private static void LogProblem(Exception exception, string detailedMessage, string levelOfProblem)
 		{
 			var sb = new StringBuilder();
-			sb.AppendLine("*** ProblemReportApi is about to report:");
+			sb.AppendLine("*** ProblemReportDialog is about to report:");
 			if (exception != null)
 				sb.AppendLineFormat("    exception = {0}", exception.ToString());
 			if (!string.IsNullOrWhiteSpace(detailedMessage))

@@ -249,7 +249,7 @@ namespace Bloom.web.controllers
 			}
 			catch (Exception e)
 			{
-				ProblemReportApi.ShowProblemDialog(null, e,
+				ProblemReportDialog.ShowProblemDialog(null, e,
 					"AudioSegmentationApi.AutoSegment(): Exception thrown during split/extract stage", "nonfatal");
 				request.ReplyWithBoolean(false);
 				return;
@@ -340,7 +340,7 @@ namespace Bloom.web.controllers
 			}
 			catch (Exception e)
 			{
-				ProblemReportApi.ShowProblemDialog(null, e,
+				ProblemReportDialog.ShowProblemDialog(null, e,
 					"AudioSegmentationApi.GetAeneasTimings(): Exception thrown during split stage", "nonfatal");
 				return null;
 			}

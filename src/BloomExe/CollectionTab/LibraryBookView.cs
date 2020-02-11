@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using Bloom.Api;
 using Bloom.Book;
 using Bloom.MiscUI;
-using Bloom.web.controllers;
 using Gecko;
 using MarkdownDeep;
 using SIL.IO;
@@ -236,7 +235,7 @@ namespace Bloom.CollectionTab
 		{
 			if (GetAnchorHref(e).EndsWith("ReportProblem"))
 			{
-				ProblemReportApi.ShowProblemDialog(_previewBrowser, null, "", "nonfatal");
+				ProblemReportDialog.ShowProblemDialog(_previewBrowser, null, "", "nonfatal");
 			}
 		}
 

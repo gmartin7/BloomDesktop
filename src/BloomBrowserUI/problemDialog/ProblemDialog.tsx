@@ -413,7 +413,7 @@ export function submissionResults(result: string) {
     // }
 }
 
-// Since we don't want the new Problem Reporting system to be dependent on have BloomServer running to capture
+// Since we don't want the new Problem Reporting system to be dependent on having BloomServer running to capture
 // API calls, we are resurrecting the old C# event system that we've been trying to weed out!
 function fireCSharpEvent(eventName: string, eventData: any) {
     const event = new MessageEvent(eventName, {

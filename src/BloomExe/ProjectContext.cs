@@ -11,7 +11,6 @@ using Bloom.Collection;
 using Bloom.CollectionTab;
 using Bloom.Edit;
 using Bloom.ImageProcessing;
-//using Bloom.SendReceive;
 using Bloom.WebLibraryIntegration;
 using Bloom.Workspace;
 using Bloom.Api;
@@ -21,7 +20,6 @@ using Bloom.Publish.Epub;
 using Bloom.web;
 using Bloom.web.controllers;
 using BloomTests.web.controllers;
-//using Chorus;
 using SIL.Extensions;
 using SIL.IO;
 using SIL.Reporting;
@@ -44,14 +42,6 @@ namespace Bloom
 		public ProjectContext(string projectSettingsPath, IContainer parentContainer)
 		{
 			SettingsPath = projectSettingsPath;
-			// BL-8019: A couple lines down, BuildSubContainerForThisProject() starts BloomServer with the new project.
-			// While we are starting (or restarting, in the case of switching collections) BloomServer we need to use
-			// the WinFormsExceptionHandler mechanism, which doesn't use a browser.
-			// The ProblemReportApi, which uses the browser (and therefore BloomServer) isn't available to us
-			// while BloomServer is starting up. By the time WorkspaceView comes online and sets the error reporting
-			// to the ProblemReportApi mechanism, BloomServer will be up and running again.
-			ErrorReport.OnShowDetails = null;
-			FatalExceptionHandler.UseFallback = true;
 
 			BuildSubContainerForThisProject(projectSettingsPath, parentContainer);
 
@@ -568,18 +558,9 @@ namespace Bloom
 			return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).CombineForPath("SIL").CombineForPath("Bloom");
 		}
 
-		private static void ResetToFallbackHandler()
-		{
-			ErrorReport.OnShowDetails = null;
-			FatalExceptionHandler.UseFallback = true;
-		}
-
 		/// ------------------------------------------------------------------------------------
 		public void Dispose()
 		{
-			// Disposing ProjectContext disables api functionality and disposes WorkspaceModel/View, BloomServer, et al.,
-			// so we need to resort to our fallback error handler.
-			ResetToFallbackHandler();
 			_scope.Dispose();
 			_scope = null;
 

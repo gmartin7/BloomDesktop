@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
 using Bloom.MiscUI;
-using Bloom.web.controllers;
 using DesktopAnalytics;
 using SIL.Reporting;
 using SIL.Windows.Forms.Progress;
@@ -90,7 +89,7 @@ namespace Bloom
 						{
 							// N.B.: We should be more careful than ever about when we want 'showSendReport' to be 'true',
 							// since this new "nonfatal" UI doesn't have a "Cancel" button.
-							ProblemReportApi.ShowProblemDialog(Form.ActiveForm, exception, fullDetailedMessage, "nonfatal");
+							ProblemReportDialog.ShowProblemDialog(Form.ActiveForm, exception, fullDetailedMessage, "nonfatal");
 						}
 						else
 						{
@@ -149,7 +148,7 @@ namespace Bloom
 				toast.ToastClicked +=
 					(s, e) =>
 					{
-						ProblemReportApi.ShowProblemDialog(formForSynchronizing, exception, fullDetailedMessage, "nonfatal");
+						ProblemReportDialog.ShowProblemDialog(formForSynchronizing, exception, fullDetailedMessage, "nonfatal");
 					};
 				callToAction = "Report";
 			}

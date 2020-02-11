@@ -25,7 +25,6 @@ using SIL.Reporting;
 using SIL.Windows.Forms.Progress;
 using BloomTemp;
 using System.Xml;
-using Bloom.web.controllers;
 
 namespace Bloom.WebLibraryIntegration
 {
@@ -240,7 +239,7 @@ namespace Bloom.WebLibraryIntegration
 					progressDialog.ProgressStateResult.ExceptionThatWasEncountered != null)
 				{
 					var exc = progressDialog.ProgressStateResult.ExceptionThatWasEncountered;
-					ProblemReportApi.ShowProblemDialog(null, exc, "", "fatal");
+					ProblemReportDialog.ShowProblemDialog(null, exc, "", "fatal");
 				}
 			}
 		}

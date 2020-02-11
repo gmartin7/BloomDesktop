@@ -1,9 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using Bloom.Collection;
-using Bloom.web.controllers;
 using SIL.IO;
-using SIL.Reporting;
 
 namespace Bloom.Edit
 {
@@ -47,7 +45,7 @@ namespace Bloom.Edit
 				}
 				catch (IOException e)
 				{
-					ProblemReportApi.ShowProblemDialog(null, e,
+					ProblemReportDialog.ShowProblemDialog(null, e,
 						"Problem copying Reader Tools Settings from an installed BloomPack.", "nonfatal");
 				}
 			}
@@ -72,7 +70,7 @@ namespace Bloom.Edit
 				catch (IOException e)
 				{
 					var msg = $"Cannot copy {sourcePath} to {destPath}.";
-					ProblemReportApi.ShowProblemDialog(null, e, msg, "nonfatal");
+					ProblemReportDialog.ShowProblemDialog(null, e, msg, "nonfatal");
 				}
 			}
 		}

@@ -1,5 +1,4 @@
-﻿using Bloom.web.controllers;
-using System;
+﻿using System;
 using System.Threading;
 using SIL.Reporting;
 using System.Windows.Forms;
@@ -35,7 +34,8 @@ namespace Bloom
 			// We also want to catch the UnhandledExceptions for all the cases that
 			// ThreadException don't catch, e.g. in the startup.
 			AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
-			var _problemReportObject = ProblemReportApi(null);
+			var _problemReportObject = new ProblemReportDialog(null);
+			ErrorReport.OnShowDetails = ProblemReportDialog.ShowProblemDialogForNonFatalException;
 		}
 
 		/// ------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace Bloom
 
 		protected override bool DisplayError(Exception exception)
 		{
-			ProblemReportApi.ShowProblemDialog(Form.ActiveForm, exception, "", "fatal");
+			ProblemReportDialog.ShowProblemDialog(Form.ActiveForm, exception, "", "fatal");
 			return true;
 		}
 	}
